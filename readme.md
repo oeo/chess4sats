@@ -4,6 +4,12 @@ wager sats on lichess games using the lightning network
 
 ---
 
+### stack
+- react
+- node.js
+- redis
+- btcpay
+
 ### figma
 <https://www.figma.com/file/EJHJ9fS14eU9lPM37uTGIu/Untitled?node-id=0%3A1>
 
