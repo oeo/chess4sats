@@ -1,0 +1,13 @@
+{
+  "name": "chess4sats-server",
+  "version": "1.0.0",
+  "main": "module.coffee",
+  "license": "MIT",
+  "dependencies": {
+    "bluebird": "^3.5.1",
+    "body-parser": "^1.18.3",
+    "express": "^4.16.3",
+    "flat": "^4.0.0",
+    "wegweg": "^0.17.0"
+  }
+}
