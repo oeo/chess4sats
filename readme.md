@@ -1,6 +1,5 @@
-<img src="static/logo-with-background.svg" width="200"/>
+<img src="static/logo-with-background.svg" width="350"/>
 
-# chess4sats
 a lightning network app to wager sats on lichess games
 
 ## figma
