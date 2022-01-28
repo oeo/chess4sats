@@ -40,16 +40,16 @@ class Home extends Component
   )
 
   create_challenge: (->
-    axios({
+    r = await axios({
       method: 'post'
-      url: '/api/challenge'
+      url: '/v1/challenge'
       data: {
         mins: 10
         incr: 5
       }
-    }).then((r) =>
-      @setState {redirect:'/api/challenge/' + r.data._id}
-    )
+    })
+
+    @setState {redirect:'/' + r.data._id}
   )
 
   render: (->
@@ -61,22 +61,21 @@ class Home extends Component
       <Header/>
 
       <div className="row justify-content-center">
-        <div className="col-sm-5">
+        <div className="col-lg-5 col-md-10 col-sm-12">
           <div className="text-center">
             <p>
               Challenge your friends to a high-stakes
               game of <a href="https://www.lichess.org" target="_blank">Lichess</a> by
-              wagering sats over the Lightning Network. Winner takes all.
+              wagering sats over the Lightning Network.
             </p>
           </div>
-          <div style={{height:5}}/>
-          <div className="mt-4 text-center">
+          <div className="mt-3 text-center">
             <Button
               size="lg"
               color="success"
               onClick={@create_challenge}
             >
-              Create a new challenge
+              Create a challenge
             </Button>
           </div>
         </div>

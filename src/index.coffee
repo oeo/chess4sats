@@ -15,11 +15,13 @@ import 'bootstrap/dist/css/bootstrap.min.css'
 import "./../static/main.css"
 
 import Home from './home.coffee'
+import Challenge from './challenge.coffee'
 
 ReactDOM.render(
   <Router>
     <div>
       <Route exact path="/" component={Home}/>
+      <Route path="/:id" component={Challenge}/>
     </div>
   </Router>
 ,document.getElementById('_'))
