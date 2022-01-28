@@ -1,6 +1,8 @@
-_ = require('wegweg')({
-  globals: on
+require('dotenv').config({
+  path: __dirname + '/../.env'
 })
+
+_ = require('wegweg')({globals:on})
 
 conf = require './conf'
 routes = require './routes'
@@ -8,15 +10,16 @@ routes = require './routes'
 express = require 'express'
 mongoose = require 'mongoose'
 
-mongoose.connect conf.mongo, (e) ->
+mongoose.connect process.env.MONGO_URI, (e) ->
   if e then throw e
 
 module.exports.configure = configure = ((app,server=false) ->
   app.disable 'x-powered-by'
+
   app.use(require('body-parser').json())
   app.use(require('body-parser').urlencoded({extended:false}))
 
-  app.use '/api', routes
+  app.use '/v1', routes
 
   if server
     app.use '/', express.static(__dirname + '/../build')
@@ -41,6 +44,6 @@ module.exports.app = app = do ->
 
 if !module.parent
   _app = configure(express(),true)
-  app.listen conf.http_port
-  log ":#{conf.http_port}"
+  app.listen port = process.env.HTTP_PORT
+  log ":#{port}"
 

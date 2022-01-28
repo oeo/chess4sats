@@ -2,17 +2,33 @@ _ = require('wegweg')({
   globals: on
 })
 
-conf = require './conf'
-
+lightning = require './lib/lightning'
 lichess = require './lib/lichess'
 Challenge = require './models/challenge'
 
+qrcode = require 'qrcode'
 express = require 'express'
 
 router = module.exports = new express.Router
 
 router.get '/ping', (req,res,next) ->
   return res.json pong:_.uuid()
+
+router.get '/qr-image/:data', (req,res,next) ->
+  if !(data = req.params.data)
+    return next new Error 'data required'
+
+  await qrcode.toDataURL data, {width:800,margin:0}, defer e,data_url
+  if e then return next e
+
+  # return json
+  if !req.query.buffer then return res.json({data_url})
+
+  # return buffer
+  buffer = new Buffer(data_url.split(',').pop(),'base64')
+
+  res.set 'content-type', 'image/png'
+  res.end(buffer)
 
 router.post '/challenge', (req,res,next) ->
   await Challenge.create {
@@ -43,7 +59,6 @@ router.get '/challenge/:_id/deposit', (req,res,next) ->
   if e then return next e
 
   return res.json doc
-
 
 module.exports = router
 

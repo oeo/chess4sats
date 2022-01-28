@@ -1,3 +1,5 @@
+require('dotenv').config()
+
 _ = require('wegweg')({
   globals: on
 })
@@ -48,14 +50,13 @@ module.exports = {
 
   devServer: {
     hot: true
-    open: true
+    open: false
     compress: false
     quiet: false
-    port: require(__dirname + '/server/conf').http_port
-    overlay: {
-      errors: true
-    }
+    port: process.env.HTTP_PORT
+    overlay: {errors:on}
     contentBase: path.join(__dirname,'build')
+    watchContentBase: true
     historyApiFallback: true
     before: ((app) ->
       app = require(__dirname + '/server/app').configure(app,false)

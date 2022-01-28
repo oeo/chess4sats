@@ -2,7 +2,7 @@ _ = require('wegweg')({
   globals: on
 })
 
-conf = require './../conf'
+lightning = require './../lib/lightning'
 lichess = require './../lib/lichess'
 encrypt = require './../lib/encrypt'
 
@@ -10,20 +10,20 @@ mongoose = require 'mongoose'
 funny = require 'funny-versions'
 
 Challenge = new (Schema = mongoose.Schema) {
+  funny_name: String
   note: String
 
   mins: {type:Number,default:15}
   incr: {type:Number,default:0}
 
-  p1_uuid: String
-  p2_uuid: String
-
   p1_color: String
   p2_color: String
 
+  p1_invoice: Schema.Types.Mixed
   p1_deposit: Number
   p1_deposit_time: Number
 
+  p2_invoice: Schema.Types.Mixed
   p2_deposit: Number
   p2_deposit_time: Number
 
@@ -33,10 +33,9 @@ Challenge = new (Schema = mongoose.Schema) {
   lichess_game: Schema.Types.Mixed
   lichess_game_mtime: Number
 
-  game_start_time: {type:Number,default:0}
-  game_end_time: {type:Number,default:0}
-
+  reward: Number
   reward_claimed: {type:Boolean,default:false}
+  reward_claimed_time: Number
 
 }, {collection:'challenges',strict:on}
 
@@ -51,15 +50,34 @@ Challenge.plugin((schema) ->
 )
 
 Challenge.pre 'save', (next) ->
-  @p1_uuid = _.uuid()
-  @p2_uuid = _.uuid()
-
   @p1_color = (colors = _.shuffle(['white','black'])).pop()
   @p2_color = colors.pop()
+
+  @funny_name = funny.generate()
+  @note = process.env.NAME + ' game ' + @_id
 
   if @isNew
     await @create_open_challenge false, defer e
     if e then return next e
+
+    await lightning.create_invoice {
+      description: @note + ' deposit p1'
+    }, defer e, p1_invoice
+    if e then return next e
+
+    await lightning.create_invoice {
+      description: @note + ' deposit p2'
+    }, defer e, p2_invoice
+    if e then return next e
+
+    @p1_invoice = _.omit p1_invoice, (bad = [
+      'secret'
+      'tokens'
+      'mtokens'
+      'created_at'
+    ])
+
+    @p2_invoice = _.omit p2_invoice, bad
 
   return next()
 
@@ -69,14 +87,13 @@ Challenge.methods.create_open_challenge = (save=true,next) ->
     save = true
 
   await lichess.create_open_challenge {
-    name: _.uri_title(funny.generate()) + '-' + @_id
+    name: @note
     mins: @mins
     incr: @incr
   }, defer e,challenge_data
   if e then return next e
 
   @lichess_id_encrypted = encrypt.enc(challenge_data.id)
-
   @lichess_challenge = _.omit(challenge_data, [
     'id'
     'url'

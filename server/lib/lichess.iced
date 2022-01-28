@@ -5,11 +5,6 @@ _ = require('wegweg')({
 axios = require 'axios'
 pgn = require 'pgn-parser'
 
-conf = require './../conf'
-
-redis = _.redis(conf.redis)
-_key = (x) -> conf.redis_prefix + ':' + x
-
 module.exports = lichess = li = {}
 
 lichess.create_open_challenge = ((opt={},cb) ->
@@ -21,7 +16,7 @@ lichess.create_open_challenge = ((opt={},cb) ->
   opt['clock.increment'] ?= 0
   opt.variant = 'standard'
 
-  opt.name ?= conf.name + ':' + new Date().getTime()
+  opt.name ?= process.env.NAME + '@' + _.time()
 
   api_url = "https://lichess.org/api/challenge/open"
 

@@ -2,10 +2,8 @@ crypto = require 'crypto'
 
 module.exports = lib = {}
 
-ENCRYPTION_SALT = "cfc2210ec7108ed3f5e512f74e018b7f"
-
 lib.encrypt = lib.enc = (text,key) ->
-  if !key then key = ENCRYPTION_SALT
+  if !key then key = process.env.ENCRYPTION_KEY
 
   cipher = crypto.createCipher('aes-256-cbc',key)
   crypted = cipher.update(text,'utf8','hex')
@@ -14,7 +12,7 @@ lib.encrypt = lib.enc = (text,key) ->
   return crypted
 
 lib.decrypt = lib.dec = (text,key) ->
-  if !key then key = ENCRYPTION_SALT
+  if !key then key = process.env.ENCRYPTION_KEY
 
   decipher = crypto.createDecipher('aes-256-cbc',key)
   dec = decipher.update(text,'hex','utf8')
@@ -25,12 +23,12 @@ lib.decrypt = lib.dec = (text,key) ->
 module.exports = lib
 
 if !module.parent
-  ENCRYPTION_SALT = "12345"
+  CUSTOM_KEY = "12345"
 
   tmp = {}
   tmp.orig = "hello, world. this is a funny thing."
-  tmp.encrypted = lib.enc(tmp.orig,ENCRYPTION_SALT)
-  tmp.decrypted = lib.dec(tmp.encrypted,ENCRYPTION_SALT)
+  tmp.encrypted = lib.enc(tmp.orig,CUSTOM_KEY)
+  tmp.decrypted = lib.dec(tmp.encrypted,CUSTOM_KEY)
 
   console.log tmp
   process.exit 0
