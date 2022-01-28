@@ -2,22 +2,26 @@ _ = require('wegweg')({
   globals: on
 })
 
-express = require 'express'
-
 conf = require './conf'
 routes = require './routes'
 
-configure = ((app,server=false) ->
+express = require 'express'
+mongoose = require 'mongoose'
+
+mongoose.connect conf.mongo, (e) ->
+  if e then throw e
+
+module.exports.configure = configure = ((app,server=false) ->
   app.disable 'x-powered-by'
   app.use(require('body-parser').json())
   app.use(require('body-parser').urlencoded({extended:false}))
+
+  app.use '/api', routes
 
   if server
     app.use '/', express.static(__dirname + '/../build')
     app.get '/', (req,res,next) ->
       res.sendFile(__dirname + '/../build/index.html')
-
-  app.use '/', routes
 
   app.use (e,req,res,next) ->
     e = new Error(e) if _.type(e) isnt 'error'
@@ -31,9 +35,12 @@ configure = ((app,server=false) ->
   return app
 )
 
-app = express()
-app = configure(app,true)
+module.exports.app = app = do ->
+  _app = configure(express(),false)
+  return _app
 
-app.listen conf.http_port
-log ":#{conf.http_port}"
+if !module.parent
+  _app = configure(express(),true)
+  app.listen conf.http_port
+  log ":#{conf.http_port}"
 

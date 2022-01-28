@@ -2,10 +2,16 @@ import {hot} from 'react-hot-loader'
 import React, {Component} from 'react'
 import {Redirect} from 'react-router-dom'
 import autobind from 'react-autobind'
-import Error from './error.coffee'
 
-_ = require 'lodash'
-moment = require 'moment'
+import Error from './components/error.coffee'
+import Header from './components/header.coffee'
+import Footer from './components/footer.coffee'
+
+axios = require 'axios'
+
+import {
+  Button
+} from 'reactstrap'
 
 ##
 class Home extends Component
@@ -33,22 +39,50 @@ class Home extends Component
     @setState loaded:true
   )
 
+  create_challenge: (->
+    axios({
+      method: 'post'
+      url: '/api/challenge'
+      data: {
+        mins: 10
+        incr: 5
+      }
+    }).then((r) =>
+      @setState {redirect:'/api/challenge/' + r.data._id}
+    )
+  )
+
   render: (->
     if @state.error then return <Error message={@state.error}/>
+    if @state.redirect then return <Redirect to={@state.redirect}/>
     if !@state.loaded then return <div/>
 
     <div className="container">
+      <Header/>
 
-      {### summary ###}
       <div className="row justify-content-center">
-        <div className="col-sm-8 mt-4">
+        <div className="col-sm-5">
           <div className="text-center">
-            <img src="/static/logo-black-no-background.svg" style={{width:200,maxWidth:'100%'}}/>
+            <p>
+              Challenge your friends to a high-stakes
+              game of <a href="https://www.lichess.org" target="_blank">Lichess</a> by
+              wagering sats over the Lightning Network. Winner takes all.
+            </p>
+          </div>
+          <div style={{height:5}}/>
+          <div className="mt-4 text-center">
+            <Button
+              size="lg"
+              color="success"
+              onClick={@create_challenge}
+            >
+              Create a new challenge
+            </Button>
           </div>
         </div>
       </div>
 
-      <div style={{height:15}}/>
+      <Footer/>
     </div>
   )
 

@@ -11,9 +11,10 @@ import {
   Route
 } from 'react-router-dom'
 
-import Home from './home.coffee'
+import 'bootstrap/dist/css/bootstrap.min.css'
+import "./../static/main.css"
 
-import 'bootstrap/dist/css/bootstrap.min.css';
+import Home from './home.coffee'
 
 ReactDOM.render(
   <Router>

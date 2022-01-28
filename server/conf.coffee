@@ -3,6 +3,7 @@ config = {
   http_port: 10061
   redis: 'localhost'
   redis_prefix: 'chess4sats'
+  mongo: 'mongodb://localhost/chess4sats'
 }
 
 ## merge and export

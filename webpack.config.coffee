@@ -23,10 +23,15 @@ css_dev = [
 ]
 
 css_prod = ExtractTextPlugin.extract({
-  fallback: 'style-loader'
-  use: [
-    'css-loader'
-  ]
+  fallback: 'style-loader',
+  use: {
+    loader: 'css-loader',
+    options: {
+        url: false,
+        minimize: true,
+        sourceMap: true
+    }
+  },
   publicPath: '/build'
 })
 
@@ -38,7 +43,7 @@ module.exports = {
   output: {
     filename: '_.js'
     publicPath: '/'
-    path: path.resolve(__dirname, 'build')
+    path: path.resolve(__dirname,'build')
   }
 
   devServer: {
@@ -46,15 +51,15 @@ module.exports = {
     open: true
     compress: false
     quiet: false
-    port: require(__dirname + '/server/conf').HTTP_PORT
+    port: require(__dirname + '/server/conf').http_port
     overlay: {
       errors: true
     }
-    contentBase: path.join(__dirname, 'build')
+    contentBase: path.join(__dirname,'build')
     historyApiFallback: true
     before: ((app) ->
-      app = require(__dirname + '/server')(app,false)
-      app.use('/static',require('express').static('./static'))
+      app = require(__dirname + '/server/app').configure(app,false)
+      app.use('/static',require('express').static(__dirname + '/static'))
       return app
     )
   }
@@ -82,6 +87,11 @@ module.exports = {
   }
 
   plugins: [
+    new ExtractTextPlugin({
+      filename:  (getPath) =>
+        return getPath('css/[name].css').replace('css/js', 'css')
+      allChunks: true
+    })
     HtmlWebpackPluginConfig
     new CopyWebpackPlugin([{from:'./static',to:'static'}])
     new webpack.HotModuleReplacementPlugin()
