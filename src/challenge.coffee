@@ -98,22 +98,18 @@ Challenge = (props) -> (
   )
 
   return (
-    <Row className="mt-2 justify-content-center">
+    <Row className="justify-content-center">
 
       <Col xs={12} md={10} lg={6}>
-        <div className="text-center">
-          Challenge <Badge color="success">{challenge._id}</Badge> ({challenge.mins}+{challenge.incr}) is open.
-        </div>
-      </Col>
+        <ListGroup xflush className="text-center">
 
-      <div style={{clear:'both'}}/>
-
-      <Col xs={12} md={10} lg={6} className="mt-4">
-        <ListGroup className="text-center">
+          <ListGroupItem className="justify-content-between">
+            Challenge <strong>{challenge._id}</strong>
+          </ListGroupItem>
 
           <ListGroupItem className="justify-content-between">
             Total sats in pool:{' '}
-            <Badge color="success">0</Badge>
+            0
           </ListGroupItem>
 
           <ListGroupItem className="justify-content-between">
@@ -123,10 +119,9 @@ Challenge = (props) -> (
                   <InvoiceQR
                     value={invoice.data.request}
                     style={{
-                      width: 400
-                      maxWidth: '100%'
+                      width: 300
+                      maxWidth: '90%'
                     }}
-                    onClick={->alert(invoice.data.request)}
                   />
                 </div>
               else

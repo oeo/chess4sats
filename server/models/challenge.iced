@@ -12,6 +12,8 @@ funny = require 'funny-versions'
 Invoice = require './invoice'
 
 Challenge = new (Schema = mongoose.Schema) {
+  userhash: String
+
   funny_name: String
   note: String
 
@@ -20,11 +22,6 @@ Challenge = new (Schema = mongoose.Schema) {
 
   p1_color: String
   p2_color: String
-
-  invoices: [{
-    type: String
-    ref: 'Invoice'
-  }]
 
   lichess_id_encrypted: String
   lichess_challenge: Schema.Types.Mixed

@@ -16,6 +16,7 @@
     "express": "^4.16.3",
     "flat": "^4.0.0",
     "lightning": "^5.4.2",
+    "lnurl": "^0.20.0",
     "mongoose": "^6.1.8",
     "pgn-parser": "^2.2.0",
     "qrcode": "^1.5.0",

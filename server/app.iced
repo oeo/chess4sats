@@ -17,11 +17,12 @@ mongoose.connect process.env.MONGO_URI, (e) ->
 
 module.exports.configure = configure = ((app,server=false) ->
   app.disable 'x-powered-by'
-
   app.use(require('body-parser').json())
   app.use(require('body-parser').urlencoded({extended:false}))
 
   app.use (req,res,next) ->
+    console.log('request:',req.path,req.query)
+
     if (tmp = req.headers['x-forwarded-for'])
       req.real_ip = tmp.split(',').shift().trim()
     else
@@ -32,16 +33,17 @@ module.exports.configure = configure = ((app,server=false) ->
       req.headers['user-agent']
     ].join(''))
 
-    res.set 'x-user-hash', req.user_hash
+    res.set 'x-userhash', req.user_hash
 
     next()
-
-  app.use '/v1', (require './routes')
 
   if server
     app.use '/', express.static(__dirname + '/../build')
     app.get '/', (req,res,next) ->
+      log '/index get..'
       res.sendFile(__dirname + '/../build/index.html')
+
+  app.use '/v1', (require './routes')
 
   app.use (e,req,res,next) ->
     e = new Error(e) if _.type(e) isnt 'error'
@@ -55,12 +57,12 @@ module.exports.configure = configure = ((app,server=false) ->
   return app
 )
 
-module.exports.app = app = do ->
+module.exports.app = do ->
   _app = configure(express(),false)
   return _app
 
 if !module.parent
-  _app = configure(express(),true)
+  app = configure(express(),true)
   app.listen port = process.env.HTTP_PORT
   log ":#{port}"
 

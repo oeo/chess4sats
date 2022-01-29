@@ -7,6 +7,8 @@ lightning = require './../lib/lightning'
 mongoose = require 'mongoose'
 
 Invoice = new (Schema = mongoose.Schema) {
+  userhash: String
+  account: {type:String,ref:'Account'}
 
   challenge: {
     type: String

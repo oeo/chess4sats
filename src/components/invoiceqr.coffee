@@ -15,11 +15,11 @@ import {
 InvoiceQR = ((props) ->
   k_opts = {
     render: 'image'
-    size: props?.style?.width ? props.width ? 400
+    size: 300
     crisp: true
     minVersion: 1
-    rounded: 99
-    ecLevel: 'Q'
+    rounded: 100
+    ecLevel: 'L'
     text: props.value
     quiet: 0
   }

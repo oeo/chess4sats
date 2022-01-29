@@ -16,6 +16,17 @@ lnd = client.authenticatedLndGrpc(lnd_opt = {
 
 lightning = module.exports = {}
 
+lightning.listen = (->
+  log /listening to invoices/
+  sub = client.subscribeToInvoices {lnd}
+  log sub
+  sub.on 'invoice_updated', (data) ->
+    log /invoice_updated/
+    log data
+)
+
+lightning.listen()
+
 lightning.create_invoice = (opt,cb) ->
   opt.lnd = lnd
 
@@ -32,7 +43,6 @@ lightning.create_invoice = (opt,cb) ->
 
 lightning.get_invoice = (id,cb) ->
   opt = {lnd,id}
-
   return client.getInvoice opt, defer e,r
 
 if !module.parent

@@ -13,27 +13,19 @@ express = require 'express'
 
 router = module.exports = new express.Router
 
-router.get '/', (req,res,next) ->
+router.get '/lnauth', (req,res,next) ->
+  log 'GET /v1/lnauth', req.real_ip, req.query
+
   return res.json {
-    pong: _.uuid()
-    user_hash: req.user_hash
+    status: "ERROR"
+    reason: "blocked"
   }
 
-router.get '/qr-image/:data', (req,res,next) ->
-  if !(data = req.params.data)
-    return next new Error 'data required'
-
-  await qrcode.toDataURL data, {width:800,margin:0}, defer e,data_url
-  if e then return next e
-
-  # return json
-  if !req.query.buffer then return res.json({data_url})
-
-  # return buffer
-  buffer = new Buffer(data_url.split(',').pop(),'base64')
-
-  res.set 'content-type', 'image/png'
-  res.end(buffer)
+router.get '/userhash', (req,res,next) ->
+  return res.json {
+    pong: _.uuid()
+    userhash: req.userhash
+  }
 
 router.post '/challenge', (req,res,next) ->
   await Challenge.create {
@@ -70,20 +62,17 @@ router.post '/invoice', (req,res,next) ->
     if e then return next e
     if !challenge then return next new Error 'challenge_noexists'
 
+  desc = process.env.NAME
+
+  if challenge
+    desc += ' challenge ' + challenge._id + ' deposit'
+
   await Invoice.create {
     sats: req.body.sats ? req.body.amount ? undefined
     challenge: challenge?._id ? undefined
-    description: JSON.stringify({
-      note: challenge?.note ? undefined
-      challenge: challenge?._id ? undefined
-      user_hash: req.user_hash
-    })
+    description: desc
   }, defer e,invoice
   if e then return next e
-
-  if challenge
-    await challenge.add_invoice invoice._id, defer e
-    if e then return next e
 
   return res.json invoice.toJSON()
 
