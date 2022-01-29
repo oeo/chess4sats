@@ -9,6 +9,8 @@ encrypt = require './../lib/encrypt'
 mongoose = require 'mongoose'
 funny = require 'funny-versions'
 
+Invoice = require './invoice'
+
 Challenge = new (Schema = mongoose.Schema) {
   funny_name: String
   note: String
@@ -19,13 +21,10 @@ Challenge = new (Schema = mongoose.Schema) {
   p1_color: String
   p2_color: String
 
-  p1_invoice: Schema.Types.Mixed
-  p1_deposit: Number
-  p1_deposit_time: Number
-
-  p2_invoice: Schema.Types.Mixed
-  p2_deposit: Number
-  p2_deposit_time: Number
+  invoices: [{
+    type: String
+    ref: 'Invoice'
+  }]
 
   lichess_id_encrypted: String
   lichess_challenge: Schema.Types.Mixed
@@ -54,30 +53,10 @@ Challenge.pre 'save', (next) ->
   @p2_color = colors.pop()
 
   @funny_name = funny.generate()
-  @note = process.env.NAME + ' game ' + @_id
 
   if @isNew
     await @create_open_challenge false, defer e
     if e then return next e
-
-    await lightning.create_invoice {
-      description: @note + ' deposit p1'
-    }, defer e, p1_invoice
-    if e then return next e
-
-    await lightning.create_invoice {
-      description: @note + ' deposit p2'
-    }, defer e, p2_invoice
-    if e then return next e
-
-    @p1_invoice = _.omit p1_invoice, (bad = [
-      'secret'
-      'tokens'
-      'mtokens'
-      'created_at'
-    ])
-
-    @p2_invoice = _.omit p2_invoice, bad
 
   return next()
 
@@ -87,7 +66,7 @@ Challenge.methods.create_open_challenge = (save=true,next) ->
     save = true
 
   await lichess.create_open_challenge {
-    name: @note
+    name: process.env.NAME + ' challenge ' + @_id
     mins: @mins
     incr: @incr
   }, defer e,challenge_data
@@ -106,6 +85,20 @@ Challenge.methods.create_open_challenge = (save=true,next) ->
   else
     return next()
 
+Challenge.methods.add_invoice = (invoice_id,next) ->
+  await Invoice.findOne {
+    _id: invoice_id
+  }, defer e,exists
+  if e then return next e
+  if !exists then return next new Error 'invoice_noexists'
+
+  if invoice_id !in @invoices
+    @invoices.push invoice_id
+    @markModified('invoices')
+    return @save next
+  else
+    return next()
+
 Challenge.methods.deposit = (player_int,amount_sats,next) ->
   player_int = +player_int
   if player_int !in [1,2]
@@ -115,6 +108,9 @@ Challenge.methods.deposit = (player_int,amount_sats,next) ->
   this['p' + player_int + '_deposit_time'] += _.time()
 
   return @save next
+
+Challenge.methods.create_invoice = (opt,next) ->
+  return next()
 
 ##
 _m = mongoose.model 'Challenge', Challenge

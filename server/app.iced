@@ -2,10 +2,12 @@ require('dotenv').config({
   path: __dirname + '/../.env'
 })
 
-_ = require('wegweg')({globals:on})
+_ = require('wegweg')({
+  globals:on
+})
 
-conf = require './conf'
-routes = require './routes'
+events = require './events'
+events.emit 'ping'
 
 express = require 'express'
 mongoose = require 'mongoose'
@@ -19,7 +21,22 @@ module.exports.configure = configure = ((app,server=false) ->
   app.use(require('body-parser').json())
   app.use(require('body-parser').urlencoded({extended:false}))
 
-  app.use '/v1', routes
+  app.use (req,res,next) ->
+    if (tmp = req.headers['x-forwarded-for'])
+      req.real_ip = tmp.split(',').shift().trim()
+    else
+      req.real_ip = req.ip
+
+    req.user_hash = _.md5([
+      req.real_ip
+      req.headers['user-agent']
+    ].join(''))
+
+    res.set 'x-user-hash', req.user_hash
+
+    next()
+
+  app.use '/v1', (require './routes')
 
   if server
     app.use '/', express.static(__dirname + '/../build')

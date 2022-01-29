@@ -1,90 +1,82 @@
-import {hot} from 'react-hot-loader'
-import React, {Component} from 'react'
-import {Redirect} from 'react-router-dom'
-import autobind from 'react-autobind'
+import React, {
+  useState
+  useEffect
+} from 'react'
 
-import Error from './components/error.coffee'
-import Header from './components/header.coffee'
-import Footer from './components/footer.coffee'
-
-axios = require 'axios'
+import {
+  usePath
+  useParams
+  useLocation
+  useNavigate
+} from 'react-router-dom'
 
 import {
   Button
+  Container
+  Row
+  Col
+  Spinner
 } from 'reactstrap'
 
-##
-class Home extends Component
+axios = require 'axios'
 
-  state: {
-    loaded: false
-    error: false
-    query: {}
-    form: {}
-  }
+Home = (props) -> (
+  [working,set_working] = useState(false)
+  navigate = useNavigate()
 
-  constructor: (props) ->
-    super(props)
-
-  componentWillMount: ->
-    autobind(@)
-
-  componentDidMount: (->
+  useEffect(->
     document.title = 'Play Chess for Bitcoin - chess4sats'
-
-    @state.query = require('querystring').parse(
-      @props.location.search?.substr?(1) ? ''
-    )
-
-    @setState loaded:true
   )
 
-  create_challenge: (->
+  create_challenge = (=>
+    set_working true
+
     r = await axios({
       method: 'post'
       url: '/v1/challenge'
       data: {
-        mins: 10
+        mins: 15
         incr: 5
       }
     })
 
-    @setState {redirect:'/' + r.data._id}
+    navigate '/' + r.data._id
   )
 
-  render: (->
-    if @state.error then return <Error message={@state.error}/>
-    if @state.redirect then return <Redirect to={@state.redirect}/>
-    if !@state.loaded then return <div/>
-
-    <div className="container">
-      <Header/>
-
-      <div className="row justify-content-center">
-        <div className="col-lg-5 col-md-10 col-sm-12">
-          <div className="text-center">
-            <p>
-              Challenge your friends to a high-stakes
-              game of <a href="https://www.lichess.org" target="_blank">Lichess</a> by
-              wagering sats over the Lightning Network.
-            </p>
-          </div>
-          <div className="mt-3 text-center">
-            <Button
-              size="lg"
-              color="success"
-              onClick={@create_challenge}
-            >
-              Create a challenge
-            </Button>
-          </div>
+  return (
+    <Row className="justify-content-center">
+      <Col xs={12} md={10} lg={6}>
+        <div className="text-center">
+          <p>
+            Challenge your friends to a high-stakes
+            game of <a href="https://www.lichess.org" target="_blank">Lichess</a> by
+            wagering sats using lightning.
+          </p>
         </div>
-      </div>
-
-      <Footer/>
-    </div>
+        <div className="mt-4 text-center">
+          <Button
+            size="lg"
+            color="success"
+            onClick={create_challenge}
+          >
+            {
+              if !working
+                <span>Create challenge</span>
+              else
+                <Spinner
+                  as="span"
+                  animation="border"
+                  size="sm"
+                  role="status"
+                  aria-hidden="true"
+                />
+            }
+          </Button>
+        </div>
+      </Col>
+    </Row>
   )
+)
 
-##
-export default hot(module)(Home)
+export default Home
 

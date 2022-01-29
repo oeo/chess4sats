@@ -18,14 +18,22 @@ lightning = module.exports = {}
 
 lightning.create_invoice = (opt,cb) ->
   opt.lnd = lnd
-  opt.description ?= 'new-invoice'
+
+  description = opt.memo ? opt.description ? process.env.NAME + _.uuid()
+  opt.description = description
+
+  sats = opt.sats ? opt.amount ? opt.tokens
+  opt.tokens = +sats if sats
+
   opt.is_fallback_included = true
-  opt.expires_at = new Date((_.time() + _.secs('48 hours'))*1000).toISOString()
+  opt.expires_at = new Date((_.time() + _.secs('7 days'))*1000).toISOString()
 
-  await client.createInvoice opt, defer e,r
-  if e then return cb e
+  return client.createInvoice opt, cb
 
-  return cb null, r
+lightning.get_invoice = (id,cb) ->
+  opt = {lnd,id}
+
+  return client.getInvoice opt, defer e,r
 
 if !module.parent
   ###

@@ -11,30 +11,12 @@ webpack = require 'webpack'
 
 CopyWebpackPlugin = require 'copy-webpack-plugin'
 HtmlWebpackPlugin = require 'html-webpack-plugin'
-ExtractTextPlugin = require 'extract-text-webpack-plugin'
+MiniCssExtractPlugin = require("mini-css-extract-plugin")
 
 HtmlWebpackPluginConfig = new HtmlWebpackPlugin({
   template: './src/index.html'
   filename: 'index.html'
   hash: true
-})
-
-css_dev = [
-  'style-loader'
-  'css-loader'
-]
-
-css_prod = ExtractTextPlugin.extract({
-  fallback: 'style-loader',
-  use: {
-    loader: 'css-loader',
-    options: {
-        url: false,
-        minimize: true,
-        sourceMap: true
-    }
-  },
-  publicPath: '/build'
 })
 
 module.exports = {
@@ -52,19 +34,22 @@ module.exports = {
     hot: true
     open: false
     compress: false
-    quiet: false
     port: process.env.HTTP_PORT
-    overlay: {errors:on}
-    contentBase: path.join(__dirname,'build')
-    watchContentBase: true
+    client:
+      overlay: on
+    static:
+      directory: path.join(__dirname,'build')
     historyApiFallback: true
-    before: ((app) ->
-      app = require(__dirname + '/server/app').configure(app,false)
-      app.use('/static',require('express').static(__dirname + '/static'))
-      return app
+    onBeforeSetupMiddleware: ((ds) ->
+      ds.app = require(__dirname + '/server/app').configure(ds.app,false)
+      ds.app.use('/static',require('express').static(__dirname + '/static'))
     )
   }
 
+  resolve: {
+    fallback:
+      querystring: false
+  }
   module: {
     rules: [
       {
@@ -73,7 +58,7 @@ module.exports = {
           {
             loader: 'babel-loader'
             options: {
-              presets: ['env','react']
+              presets: ['@babel/preset-env','@babel/react']
             }
           }
           'coffee-loader'
@@ -82,21 +67,16 @@ module.exports = {
       }
       {
         test: /\.css$/
-        use: (if PRODUCTION then css_prod else css_dev)
+        use: [MiniCssExtractPlugin.loader, "css-loader"]
       }
     ]
   }
 
   plugins: [
-    new ExtractTextPlugin({
-      filename:  (getPath) =>
-        return getPath('css/[name].css').replace('css/js', 'css')
-      allChunks: true
-    })
+    new MiniCssExtractPlugin()
     HtmlWebpackPluginConfig
     new CopyWebpackPlugin([{from:'./static',to:'static'}])
     new webpack.HotModuleReplacementPlugin()
-    new webpack.NamedModulesPlugin()
   ]
 }
 

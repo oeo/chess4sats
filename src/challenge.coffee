@@ -1,12 +1,18 @@
-import {hot} from 'react-hot-loader'
-import React, {Component} from 'react'
-import {Redirect} from 'react-router-dom'
-import autobind from 'react-autobind'
+import React, {
+  useState
+  useEffect
+} from 'react'
 
-import Error from './components/error.coffee'
-import Header from './components/header.coffee'
-import Footer from './components/footer.coffee'
+import {
+  usePath
+  useParams
+  useLocation
+  useNavigate
+} from 'react-router-dom'
 
+import InvoiceQR from './components/invoiceqr.coffee'
+
+_ = require 'lodash'
 axios = require 'axios'
 
 import {
@@ -24,138 +30,155 @@ import {
   Col
   ListGroup
   ListGroupItem
+  Spinner
 } from 'reactstrap'
 
-##
-class Challenge extends Component
+Challenge = (props) -> (
+  [loaded,set_loaded] = useState(false)
+  [working,set_working] = useState(true)
+  [invoice,set_invoice] = useState({})
+  [challenge,set_challenge] = useState({})
 
-  state: {
-    loaded: false
-    error: false
-    query: {}
-    form: {}
-  }
+  [params,location,navigate] = [
+    useParams()
+    useLocation()
+    useNavigate()
+  ]
 
-  constructor: (props) ->
-    super(props)
+  useEffect((->
+    document.title = 'Challenge ' + params.id
 
-  componentWillMount: ->
-    autobind(@)
+    await update_challenge()
+    await update_invoice()
 
-  componentDidMount: (->
+  ),[])
+
+  update_challenge = (->
     r = await axios({
       method: 'get'
-      url: '/v1/challenge/' + @props.match.params.id
+      url: '/v1/challenge/' + params.id
     })
 
-    @state.challenge = r.data
+    set_challenge r.data
+    set_loaded true
 
-    console.log /challenge/, @state.challenge
-
-    @state.query = require('querystring').parse(
-      @props.location.search?.substr?(1) ? ''
-    )
-
-    document.title = 'New Challenge ' + @state.challenge.note + ' - chess2sats'
-
-    @state.loaded = true
-    @forceUpdate()
+    return r.data
   )
 
-  update_challenge: (->
+  update_invoice = ((amount=10) ->
+    set_invoice {}
+
     r = await axios({
-      method: 'get'
-      url: '/v1/challenge/' + @props.match.params.id
+      method: 'post'
+      url: '/v1/invoice'
+      data: {
+        challenge: params.id
+        amount: amount
+      }
     })
 
-    @state.challenge = r.data
-    @forceUpdate()
+    log /invoice_r.data/, r.data.data
+    set_invoice r.data
+
+    return r.data
   )
 
-  render: (->
-    if @state.error then return <Error message={@state.error}/>
-    if @state.redirect then return <Redirect to={@state.redirect}/>
-    if !@state.loaded then return <div/>
-
-    <div className="container">
-      <Header/>
-
-      <div className="row justify-content-center">
-        <div className="col-lg-6 col-md-10 col-sm-12">
-          <div className="text-center">
-            <p>
-              Challenge <Badge color="success">{@state.challenge._id}</Badge> ({@state.challenge.mins}+{@state.challenge.incr}) is open.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <Row className="mt-2 justify-content-center">
-        <Col xs={12} md={10} lg={6}>
-          <ListGroup className="text-center">
-            <ListGroupItem className="justify-content-between">
-              Total sats reward for a winning{' '}
-              <Badge color="success">0</Badge>
-            </ListGroupItem>
-            <ListGroupItem className="justify-content-between">
-              Opponent sats deposit{' '}
-              <Badge color="dark">0</Badge>
-            </ListGroupItem>
-            <ListGroupItem className="justify-content-between">
-              <div>
-                Your deposit{' '}
-                <Badge color="dark">0</Badge>
-              </div>
-              <div className="mt-2">
-                <img
-                  src={"/v1/qr-image/" + @state.challenge.p1_invoice.request + "?buffer=1"}
-                  style={{
-                    width: 350
-                    maxWidth: '90%'
-                  }}
-                />
-              </div>
-              <div className="mt-1">
-                <small className="text-muted">
-                  Tap or scan to deposit sats for this game.
-                  <br/>
-                  Cancel at any time before starting to be refunded.
-                </small>
-              </div>
-
-            </ListGroupItem>
-          </ListGroup>
-        </Col>
-      </Row>
-      <div className="row justify-content-center mt-3">
-        <div className="text-center col-lg-6 col-md-10 col-xs-12">
-          <div className="text-center">
-            <Button
-              size="lg"
-              color="success"
-              onClick={@open_game}
-            >
-              Start game in new tab
-            </Button>
-          </div>
-          <div className="text-center mt-3">
-            <Button
-              size="md"
-              color="secondary"
-              outline
-              onClick={@cancel_challenge}
-            >
-              Cancel and refund
-            </Button>
-          </div>
-        </div>
-      </div>
-
-
-      <Footer/>
-    </div>
+  start_open_game = (->
+    window.open 'http://www.google.com'
   )
 
-##
-export default hot(module)(Challenge)
+  cancel_challenge = (->
+    await update_challenge()
+  )
+
+  if !loaded then return (
+    <Col className="text-center mt-3">
+      <Spinner/>
+    </Col>
+  )
+
+  return (
+    <Row className="mt-2 justify-content-center">
+
+      <Col xs={12} md={10} lg={6}>
+        <div className="text-center">
+          Challenge <Badge color="success">{challenge._id}</Badge> ({challenge.mins}+{challenge.incr}) is open.
+        </div>
+      </Col>
+
+      <div style={{clear:'both'}}/>
+
+      <Col xs={12} md={10} lg={6} className="mt-4">
+        <ListGroup className="text-center">
+
+          <ListGroupItem className="justify-content-between">
+            Total sats in pool:{' '}
+            <Badge color="success">0</Badge>
+          </ListGroupItem>
+
+          <ListGroupItem className="justify-content-between">
+            {
+              if invoice?.data?.request?
+                <div>
+                  <InvoiceQR
+                    value={invoice.data.request}
+                    style={{
+                      width: 400
+                      maxWidth: '100%'
+                    }}
+                    onClick={->alert(invoice.data.request)}
+                  />
+                </div>
+              else
+                <Spinner/>
+            }
+            <div className="mt-1">
+              <small className="text-muted">
+                Tap or scan to deposit sats for this game.
+                <br/>
+                Cancel at any time before starting to be refunded.
+              </small>
+            </div>
+
+          </ListGroupItem>
+        </ListGroup>
+      </Col>
+
+      <div style={{clear:'both'}}/>
+
+      <Col xs={12} md={10} lg={6} className="mt-4">
+        <div className="text-center">
+          <Button
+            size="lg"
+            color="success"
+            disabled={true}
+            onClick={-> await start_open_game()}
+          >
+            Start game on Lichess
+          </Button>
+        </div>
+        <div className="text-center mt-3">
+          <Button
+            size="md"
+            outline
+            color="secondary"
+            onClick={-> await cancel_challenge()}
+          >
+            Cancel challenge
+          </Button>
+          <Button
+            size="md"
+            outline
+            color="secondary"
+            onClick={-> await update_invoice()}
+          >
+            Update invoice
+          </Button>
+        </div>
+      </Col>
+    </Row>
+  )
+)
+
+export default Challenge
 
