@@ -22,13 +22,12 @@ if !module.parent
   log _.fns(lnurl)
   log _.keys(lnurl)
 
-  AUTH_K1 = '83b11032e1bdd613e83b69c1ca65e9e6efe1583e4c0a3dac6de548fbd819d88b'
-  AUTH_URL = 'https://9840-68-235-43-92.ngrok.io/v1/lnauth'
+  AUTH_K1 = lib.generate_k1()
+  AUTH_URL = 'https://ec85-68-235-43-92.ngrok.io/v1/lnauth'
 
   url = AUTH_URL + '?' + qs.stringify({
     tag: 'login'
     k1: AUTH_K1
-    action: 'login'
   })
 
   log url
