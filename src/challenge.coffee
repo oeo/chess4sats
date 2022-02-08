@@ -16,6 +16,7 @@ _ = require 'lodash'
 axios = require 'axios'
 
 import {
+  Alert
   Button
   Badge
   Card
@@ -33,25 +34,31 @@ import {
   Spinner
 } from 'reactstrap'
 
+socket = new WebSocket('ws://localhost:8080/ws')
+socket.addEventListener 'open', (event) ->
+  console.log(event)
+  console.log 'i opened a fuckin websocket'
+  socket.send 'hello there!!!'
+
 Challenge = (props) -> (
-  [loaded,set_loaded] = useState(false)
-  [working,set_working] = useState(true)
+  [invoice_disabled,set_invoice_disabled] = useState(false)
   [invoice,set_invoice] = useState({})
   [challenge,set_challenge] = useState({})
+  [loaded,set_loaded] = useState(false)
 
-  [params,location,navigate] = [
-    useParams()
-    useLocation()
-    useNavigate()
-  ]
+  params = useParams()
 
   useEffect((->
     document.title = 'Challenge ' + params.id
 
     await update_challenge()
     await update_invoice()
-
   ),[])
+
+  useEffect((->
+    if challenge?._id and invoice?._id
+      set_loaded true
+  ),[challenge,invoice])
 
   update_challenge = (->
     r = await axios({
@@ -60,13 +67,10 @@ Challenge = (props) -> (
     })
 
     set_challenge r.data
-    set_loaded true
-
-    return r.data
   )
 
   update_invoice = ((amount=10) ->
-    set_invoice {}
+    set_invoice_disabled true
 
     r = await axios({
       method: 'post'
@@ -77,18 +81,12 @@ Challenge = (props) -> (
       }
     })
 
-    log /invoice_r.data/, r.data.data
     set_invoice r.data
-
-    return r.data
+    set_invoice_disabled false
   )
 
   start_open_game = (->
     window.open 'http://www.google.com'
-  )
-
-  cancel_challenge = (->
-    await update_challenge()
   )
 
   if !loaded then return (
@@ -101,37 +99,38 @@ Challenge = (props) -> (
     <Row className="justify-content-center">
 
       <Col xs={12} md={10} lg={6}>
-        <ListGroup xflush className="text-center">
+        <ListGroup className="text-center">
 
           <ListGroupItem className="justify-content-between">
-            Challenge <strong>{challenge._id}</strong>
+            <Badge pill color="success">Lichess game ready</Badge>
+            <br/>
+            <Badge color="danger">Waiting on P1</Badge>
+            <br/>
+            <Badge color="danger">Waiting on P2</Badge>
           </ListGroupItem>
 
           <ListGroupItem className="justify-content-between">
-            Total sats in pool:{' '}
-            0
-          </ListGroupItem>
+            <div>
+              Sats: {' '}
+              0 (~$0.00 USD)
+            </div>
 
-          <ListGroupItem className="justify-content-between">
             {
               if invoice?.data?.request?
                 <div>
                   <InvoiceQR
                     value={invoice.data.request}
+                    disabled={invoice_disabled}
                     style={{
                       width: 300
-                      maxWidth: '90%'
+                      height: 300
                     }}
                   />
                 </div>
-              else
-                <Spinner/>
             }
             <div className="mt-1">
               <small className="text-muted">
-                Tap or scan to deposit sats for this game.
-                <br/>
-                Cancel at any time before starting to be refunded.
+                Scan to deposit sats for this game.
               </small>
             </div>
 
@@ -149,20 +148,12 @@ Challenge = (props) -> (
             disabled={true}
             onClick={-> await start_open_game()}
           >
-            Start game on Lichess
+            Start game
           </Button>
         </div>
         <div className="text-center mt-3">
           <Button
-            size="md"
-            outline
-            color="secondary"
-            onClick={-> await cancel_challenge()}
-          >
-            Cancel challenge
-          </Button>
-          <Button
-            size="md"
+            size="sm"
             outline
             color="secondary"
             onClick={-> await update_invoice()}

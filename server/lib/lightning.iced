@@ -19,10 +19,8 @@ lightning = module.exports = {}
 lightning.listen = (->
   log /listening to invoices/
   sub = client.subscribeToInvoices {lnd}
-  log sub
   sub.on 'invoice_updated', (data) ->
-    log /invoice_updated/
-    log data
+    log /invoice_updated/, JSON.stringify data
 )
 
 lightning.listen()

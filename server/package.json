@@ -14,6 +14,7 @@
     "cookie-session": "^2.0.0",
     "dotenv": "^14.3.2",
     "express": "^4.16.3",
+    "express-ws": "^5.0.2",
     "flat": "^4.0.0",
     "lightning": "^5.4.2",
     "lnurl": "^0.20.0",

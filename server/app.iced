@@ -17,6 +17,7 @@ mongoose.connect process.env.MONGO_URI, (e) ->
 
 module.exports.configure = configure = ((app,server=false) ->
   app.disable 'x-powered-by'
+
   app.use(require('body-parser').json())
   app.use(require('body-parser').urlencoded({extended:false}))
 
@@ -40,10 +41,17 @@ module.exports.configure = configure = ((app,server=false) ->
   if server
     app.use '/', express.static(__dirname + '/../build')
     app.get '/', (req,res,next) ->
-      log '/index get..'
       res.sendFile(__dirname + '/../build/index.html')
 
   app.use '/v1', (require './routes')
+
+  express_ws = require 'express-ws'
+  express_ws(app)
+
+  app.ws '/ws', (ws,req) ->
+    console.log /someone connected/
+    ws.on 'message', (data) ->
+      console.log /websocket message/, data
 
   app.use (e,req,res,next) ->
     e = new Error(e) if _.type(e) isnt 'error'

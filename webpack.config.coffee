@@ -35,10 +35,11 @@ module.exports = {
     open: false
     compress: false
     port: process.env.HTTP_PORT
-    client:
+    client: {
       overlay: on
-    static:
-      directory: path.join(__dirname,'build')
+    }
+    webSocketServer: 'ws'
+    static: {directory: path.join(__dirname,'build')}
     historyApiFallback: true
     onBeforeSetupMiddleware: ((ds) ->
       ds.app = require(__dirname + '/server/app').configure(ds.app,false)

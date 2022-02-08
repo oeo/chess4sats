@@ -19,8 +19,9 @@ InvoiceQR = ((props) ->
     crisp: true
     minVersion: 1
     rounded: 100
-    ecLevel: 'L'
+    ecLevel: 'M'
     text: props.value
+    disabled: false
     quiet: 0
   }
 
@@ -37,7 +38,12 @@ InvoiceQR = ((props) ->
   for k,v of props
     k_props[k] = v
 
-  return React.createElement('img',k_props,null)
+  if k_props.disabled
+    k_props.style.opacity = 0.25
+
+  ele = React.createElement('img',k_props,null)
+  
+  return ele
 )
 
 export default InvoiceQR
