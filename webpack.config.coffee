@@ -31,14 +31,14 @@ module.exports = {
   }
 
   devServer: {
-    hot: true
+    hot: false
     open: false
     compress: false
     port: process.env.HTTP_PORT
+    allowedHosts: 'auto'
     client: {
       overlay: on
     }
-    webSocketServer: 'ws'
     static: {directory: path.join(__dirname,'build')}
     historyApiFallback: true
     onBeforeSetupMiddleware: ((ds) ->
