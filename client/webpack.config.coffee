@@ -26,8 +26,6 @@ module.exports = {
     './src/index.coffee'
   ]
 
-  target: 'web'
-
   output: {
     filename: '_.js'
     publicPath: '/'
@@ -92,5 +90,9 @@ module.exports = {
     new CopyWebpackPlugin([{from:'./static',to:'static'}])
     new webpack.HotModuleReplacementPlugin()
   ]
+
+  experiments: {
+    topLevelAwait: true
+  }
 }
 

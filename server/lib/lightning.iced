@@ -16,11 +16,24 @@ lnd = client.authenticatedLndGrpc(lnd_opt = {
 
 lightning = module.exports = {}
 
+Invoice = require './../models/invoice'
+
 lightning.listen = (->
-  log /listening to invoices/
   sub = client.subscribeToInvoices {lnd}
   sub.on 'invoice_updated', (data) ->
-    log /invoice_updated/, JSON.stringify data
+
+    # invoice was paid
+    if data.id and data.is_confirmed and data.received
+      await Invoice
+        .findOne _id: data.id
+        .exec defer e,invoice
+      if e then throw e
+      if invoice
+        invoice.paid = true
+        invoice.sats = data.received
+        invoice.data = data
+        await invoice.save defer e
+        if e then throw e
 )
 
 lightning.listen()

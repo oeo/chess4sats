@@ -3,6 +3,7 @@ _ = require('wegweg')({
 })
 
 lightning = require './../lib/lightning'
+events = require './../lib/events'
 
 mongoose = require 'mongoose'
 
@@ -44,6 +45,26 @@ Invoice.pre 'save', (next) ->
 
     @_id = invoice_data.id
     @data = invoice_data
+
+  else
+    if @paid
+      events.emit 'invoice_paid', {
+        _id: @_id
+        sats: @sats
+      }
+
+      Challenge = require './challenge'
+
+      log /finding challenge/
+
+      await Challenge
+        .findOne _id:@challenge
+        .exec defer e,challenge
+      if e then throw e
+
+      if challenge
+        await challenge.add_invoice @_id, defer e
+        if e then throw e
 
   return next()
 

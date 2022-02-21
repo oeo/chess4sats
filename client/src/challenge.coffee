@@ -12,6 +12,8 @@ import {
 
 import InvoiceQR from './components/invoiceqr.coffee'
 
+userhash = require './lib/userhash.coffee'
+
 _ = require 'lodash'
 axios = require 'axios'
 
@@ -19,6 +21,8 @@ import {
   Alert
   Button
   Badge
+  Breadcrumb
+  BreadcrumbItem
   Card
   CardHeader
   CardTitle
@@ -39,6 +43,8 @@ Challenge = (props) -> (
   [invoice,set_invoice] = useState({})
   [challenge,set_challenge] = useState({})
   [loaded,set_loaded] = useState(false)
+  [is_p1,set_p1] = useState(false)
+  [is_p2,set_p2] = useState(false)
 
   params = useParams()
 
@@ -51,7 +57,15 @@ Challenge = (props) -> (
 
   useEffect((->
     if challenge?._id and invoice?._id
+
+      if challenge.p1_userhash is userhash.get_cache()
+        set_p1 true
+
+      if challenge.p2_userhash is userhash.get_cache()
+        set_p2 true
+
       set_loaded true
+
   ),[challenge,invoice])
 
   update_challenge = (->
@@ -70,6 +84,7 @@ Challenge = (props) -> (
       method: 'post'
       url: '/v1/invoice'
       data: {
+        userhash: userhash.get_cache()
         challenge: params.id
         amount: amount
       }
@@ -78,6 +93,9 @@ Challenge = (props) -> (
     set_invoice r.data
     set_invoice_disabled false
   )
+
+  socket.on 'challenge-updated', (data) ->
+    log /socket.challenge-updated/, data
 
   start_open_game = (->
     window.open 'http://www.google.com'
@@ -93,21 +111,37 @@ Challenge = (props) -> (
     <Row className="justify-content-center">
 
       <Col xs={12} md={10} lg={5}>
+        <div>
+          <Breadcrumb>
+            <BreadcrumbItem>
+              <a href="#">
+                Home
+              </a>
+            </BreadcrumbItem>
+            <BreadcrumbItem>
+              <a href="#">
+                Library
+              </a>
+            </BreadcrumbItem>
+            <BreadcrumbItem active>
+              Data
+            </BreadcrumbItem>
+          </Breadcrumb>
+        </div>
+
         <ListGroup className="text-center">
 
           <ListGroupItem className="justify-content-between">
-            <Badge pill color="success">Lichess game is ready</Badge>
+            {###
+            <Badge color="success">Lichess game is ready</Badge>
             <br/>
-            <Badge color="danger">Waiting on P1</Badge>
+            ###}
+            <Badge color="danger">Waiting for Player 1 deposit</Badge>
             <br/>
-            <Badge color="danger">Waiting on P2</Badge>
+            <Badge color="danger">Waiting for Player 2 deposit</Badge>
           </ListGroupItem>
 
           <ListGroupItem className="justify-content-between">
-            <div>
-              Sats: {' '}
-              0 (~$0.00 USD)
-            </div>
 
             {
               if invoice?.data?.request?
@@ -122,11 +156,6 @@ Challenge = (props) -> (
                   />
                 </div>
             }
-            <div className="mt-1">
-              <small className="text-muted">
-                Scan to deposit sats for this game.
-              </small>
-            </div>
 
           </ListGroupItem>
         </ListGroup>
@@ -134,7 +163,8 @@ Challenge = (props) -> (
 
       <div style={{clear:'both'}}/>
 
-      <Col xs={12} md={10} lg={6} className="mt-4">
+      <Col xs={12} md={10} lg={5} className="mt-1">
+        {###
         <div className="text-center">
           <Button
             size="lg"
@@ -145,6 +175,7 @@ Challenge = (props) -> (
             Start game
           </Button>
         </div>
+        ###}
         <div className="text-center mt-3">
           <Button
             size="sm"
@@ -152,7 +183,7 @@ Challenge = (props) -> (
             color="secondary"
             onClick={-> await update_invoice()}
           >
-            Update invoice
+            Refresh invoice
           </Button>
         </div>
       </Col>

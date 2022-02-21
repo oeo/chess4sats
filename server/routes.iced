@@ -21,7 +21,7 @@ router.get '/lnauth', (req,res,next) ->
     reason: "blocked"
   }
 
-router.get '/userhash', (req,res,next) ->
+router.get '/ping', (req,res,next) ->
   return res.json {
     pong: _.uuid()
     userhash: req.userhash
@@ -29,6 +29,7 @@ router.get '/userhash', (req,res,next) ->
 
 router.post '/challenge', (req,res,next) ->
   await Challenge.create {
+    p1_userhash: req.body.userhash ? undefined
     mins: +req.body.mins ? 15
     incr: +req.body.incr ? 0
     note: req.body.note ? undefined
@@ -53,6 +54,7 @@ router.get '/invoice/:_id', (req,res,next) ->
 
   return res.json doc.toJSON()
 
+# create invoice
 router.post '/invoice', (req,res,next) ->
   challenge = false
 
@@ -65,9 +67,10 @@ router.post '/invoice', (req,res,next) ->
   desc = process.env.NAME
 
   if challenge
-    desc += ' challenge ' + challenge._id + ' deposit'
+    desc += ' challenge ' + challenge._id
 
   await Invoice.create {
+    userhash: req.body.userhash ? undefined
     sats: req.body.sats ? req.body.amount ? undefined
     challenge: challenge?._id ? undefined
     description: desc

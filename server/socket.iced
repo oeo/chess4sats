@@ -4,32 +4,24 @@ _ = require('wegweg')({
 
 lightning = require './lib/lightning'
 lichess = require './lib/lichess'
+events = require './lib/events'
 
 Challenge = require './models/challenge'
 Invoice = require './models/invoice'
 
+events.on 'challenge_updated', (data) ->
+  log /a challenge has been updated/, data
+
+events.on 'challenge_created', (data) ->
+  log /a challenge has been created/, data
+
 # connection handler
-handler = (socket) ->
-  log /we have a connection (from handler)/
+module.exports = handler = ((socket) ->
+  log /new websocket connection/, socket.conn.id
 
   socket.emit 'message', 'hey whats going on bro thanks for joining in'
+)
 
-##
 module.exports = handler
 
-###
-router.get '/challenge/:_id/deposit', (req,res,next) ->
-  await Challenge.findOne _id:req.params_id, defer e,doc
-  if e then return next e
-
-  required = [
-    'player'
-    'amount'
-  ]
-
-  await challenge.deposit req.query.player, req.query.amount, defer e,doc
-  if e then return next e
-
-  return res.json doc
-###
 

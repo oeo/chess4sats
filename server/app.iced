@@ -6,8 +6,8 @@ _ = require('wegweg')({
   globals:on
 })
 
-events = require './events'
-events.emit 'ping'
+eve = require './lib/events'
+eve.emit 'server_start'
 
 express = require 'express'
 mongoose = require 'mongoose'
@@ -28,22 +28,21 @@ app.use (req,res,next) ->
   else
     req.real_ip = req.ip
 
-  req.user_hash = _.md5([
+  req.userhash = _.md5([
     req.real_ip
     req.headers['user-agent']
   ].join(''))
 
-  res.set 'x-userhash', req.user_hash
+  res.set 'x-userhash', req.userhash
 
   next()
 
-# api
+# rest
 app.use '/v1', (require './routes')
 
 # static from root
 app.use '/', express.static(__dirname + '/../client/build')
 
-# catch problems
 app.use((e,req,res,next) ->
   e = new Error(e) if _.type(e) isnt 'error'
   return res.status(500).json({
@@ -51,11 +50,22 @@ app.use((e,req,res,next) ->
   })
 )
 
+# websocket
 server = require('http').createServer(app)
 
 io = new (require('socket.io').Server)(server,{path:'/socket/'})
+
+io.use (socket,next) ->
+  if uhash = socket?.handshake?.query?.userhash
+    socket.userhash = uhash
+  next()
+  
+io.engine.generateId = (req) ->
+  return req._query.userhash ? req.socket.userhash
+
 io.on 'connection', (require './socket')
 
+# listen
 server.listen(port = process.env.HTTP_PORT_SERVER)
 log ":#{port}"
 

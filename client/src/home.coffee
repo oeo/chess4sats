@@ -20,6 +20,8 @@ import {
 
 axios = require 'axios'
 
+userhash = require './lib/userhash.coffee'
+
 Home = (props) -> (
   [working,set_working] = useState(false)
   navigate = useNavigate()
@@ -35,6 +37,7 @@ Home = (props) -> (
       method: 'post'
       url: '/v1/challenge'
       data: {
+        userhash: userhash.get_cache()
         mins: 15
         incr: 5
       }
