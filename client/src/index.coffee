@@ -3,6 +3,15 @@ import 'babel-polyfill'
 global.log = (x...) -> try console.log x...
 global.Promise = global.P = require 'bluebird'
 
+import {
+  io
+} from 'socket.io-client'
+
+global.socket = io({path:'/socket/'})
+
+socket.on 'message', (data) ->
+  log 'got a message', data
+
 import React from 'react'
 import ReactDOM from 'react-dom'
 

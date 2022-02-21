@@ -34,12 +34,6 @@ import {
   Spinner
 } from 'reactstrap'
 
-socket = new WebSocket('ws://localhost:8080/ws')
-socket.addEventListener 'open', (event) ->
-  console.log(event)
-  console.log 'i opened a fuckin websocket'
-  socket.send 'hello there!!!'
-
 Challenge = (props) -> (
   [invoice_disabled,set_invoice_disabled] = useState(false)
   [invoice,set_invoice] = useState({})

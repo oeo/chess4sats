@@ -58,6 +58,3 @@ if !module.parent
 
   exit 0
 
-lichess._encrypt = (str) ->
-
-

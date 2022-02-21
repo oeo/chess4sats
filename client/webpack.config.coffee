@@ -1,4 +1,6 @@
-require('dotenv').config()
+require('dotenv').config({
+  path: __dirname + '/../.env'
+})
 
 _ = require('wegweg')({
   globals: on
@@ -31,26 +33,35 @@ module.exports = {
   }
 
   devServer: {
-    hot: false
+    hot: true
     open: false
     compress: false
-    port: process.env.HTTP_PORT
+    port: process.env.HTTP_PORT_WEBPACK
     allowedHosts: 'auto'
-    client: {
-      overlay: on
-    }
+    client: {overlay:on}
     static: {directory: path.join(__dirname,'build')}
     historyApiFallback: true
-    onBeforeSetupMiddleware: ((ds) ->
-      ds.app = require(__dirname + '/server/app').configure(ds.app,false)
-      ds.app.use('/static',require('express').static(__dirname + '/static'))
-    )
+
+    proxy: {
+      "/v1/*": {
+        target: "http://0.0.0.0:" + process.env.HTTP_PORT_SERVER
+        changeOrigin: true
+      }
+      '/socket/*': {
+        target: 'http://0.0.0.0:' + process.env.HTTP_PORT_SERVER
+        ws: true
+        changeOrigin: true
+      }
+    }
+
   }
 
   resolve: {
     fallback:
       querystring: false
+      url: false
   }
+
   module: {
     rules: [
       {
