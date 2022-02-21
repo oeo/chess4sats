@@ -2,11 +2,27 @@
 
 wager sats on lichess games using the lightning network
 
+## getting started (server)
+```
+npm install iced-coffee-script nodemon -g
+cd ./server
+yarn
+yarn dev
+```
+
+## getting started (client)
+```
+npm install coffeescript -g
+cd ./client
+yarn
+yarn dev
+```
+
 ### stack
 - react
-- node.js
+- node
 - redis
-- mongodb
+- mongo
 - socket.io
 
 ### figma
