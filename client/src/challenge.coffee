@@ -111,6 +111,7 @@ Challenge = (props) -> (
     <Row className="justify-content-center">
 
       <Col xs={12} md={10} lg={5}>
+        {###
         <div>
           <Breadcrumb>
             <BreadcrumbItem>
@@ -128,6 +129,7 @@ Challenge = (props) -> (
             </BreadcrumbItem>
           </Breadcrumb>
         </div>
+        ###}
 
         <ListGroup className="text-center">
 

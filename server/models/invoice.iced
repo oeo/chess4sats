@@ -47,6 +47,8 @@ Invoice.pre 'save', (next) ->
     @data = invoice_data
 
   else
+
+    # invoice is paid so update the challenge
     if @paid
       events.emit 'invoice_paid', {
         _id: @_id
@@ -54,8 +56,6 @@ Invoice.pre 'save', (next) ->
       }
 
       Challenge = require './challenge'
-
-      log /finding challenge/
 
       await Challenge
         .findOne _id:@challenge
