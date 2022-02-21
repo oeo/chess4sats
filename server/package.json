@@ -19,6 +19,7 @@
     "lightning": "^5.4.2",
     "lnurl": "^0.20.0",
     "mongoose": "^6.1.8",
+    "nanoid": "^3.3.1",
     "pgn-parser": "^2.2.0",
     "qrcode": "^1.5.0",
     "socket.io": "^4.4.1",

@@ -26,6 +26,8 @@ module.exports = {
     './src/index.coffee'
   ]
 
+  target: 'web'
+
   output: {
     filename: '_.js'
     publicPath: '/'

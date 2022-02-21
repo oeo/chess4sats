@@ -17,6 +17,7 @@ import ReactDOM from 'react-dom'
 
 import {
   BrowserRouter,
+  HashRouter,
   Routes
   Route
 } from 'react-router-dom'
@@ -41,12 +42,12 @@ ReactDOM.render(
 
   <Container>
     <Header/>
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
-        <Route path="/" element={<Home/>}/>
         <Route path="/:id" element={<Challenge/>}/>
+        <Route path="/" element={<Home/>}/>
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
     <Footer/>
   </Container>
 

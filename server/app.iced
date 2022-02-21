@@ -37,12 +37,13 @@ app.use (req,res,next) ->
 
   next()
 
+# api
 app.use '/v1', (require './routes')
+
+# static from root
 app.use '/', express.static(__dirname + '/../client/build')
-app.get '/', (req,res,next) -> res.sendFile(__dirname + '/../client/build/index.html')
 
-app.use (req,res,next) -> res.redirect '/'
-
+# catch problems
 app.use((e,req,res,next) ->
   e = new Error(e) if _.type(e) isnt 'error'
   return res.status(500).json({

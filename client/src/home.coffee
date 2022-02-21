@@ -45,7 +45,7 @@ Home = (props) -> (
 
   return (
     <Row className="justify-content-center">
-      <Col xs={12} md={10} lg={6}>
+      <Col xs={12} md={10} lg={5}>
         <div className="text-center">
           <p>
             Challenge your friends to a high-stakes

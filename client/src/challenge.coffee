@@ -92,11 +92,11 @@ Challenge = (props) -> (
   return (
     <Row className="justify-content-center">
 
-      <Col xs={12} md={10} lg={6}>
+      <Col xs={12} md={10} lg={5}>
         <ListGroup className="text-center">
 
           <ListGroupItem className="justify-content-between">
-            <Badge pill color="success">Lichess game ready</Badge>
+            <Badge pill color="success">Lichess game is ready</Badge>
             <br/>
             <Badge color="danger">Waiting on P1</Badge>
             <br/>
